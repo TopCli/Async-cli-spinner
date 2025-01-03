@@ -83,6 +83,62 @@ spinner.succeed("All done !");
 Create a new Spinner. The **options** payload is described by the following TypeScript interface:
 
 ```ts
+type ForegroundColors =
+  | "black"
+  | "blackBright"
+  | "blue"
+  | "blueBright"
+  | "cyan"
+  | "cyanBright"
+  | "gray"
+  | "green"
+  | "greenBright"
+  | "grey"
+  | "magenta"
+  | "magentaBright"
+  | "red"
+  | "redBright"
+  | "white"
+  | "whiteBright"
+  | "yellow"
+  | "yellowBright";
+
+type BackgroundColors =
+  | "bgBlack"
+  | "bgBlackBright"
+  | "bgBlue"
+  | "bgBlueBright"
+  | "bgCyan"
+  | "bgCyanBright"
+  | "bgGray"
+  | "bgGreen"
+  | "bgGreenBright"
+  | "bgGrey"
+  | "bgMagenta"
+  | "bgMagentaBright"
+  | "bgRed"
+  | "bgRedBright"
+  | "bgWhite"
+  | "bgWhiteBright"
+  | "bgYellow"
+  | "bgYellowBright";
+
+type Modifiers =
+  | "blink"
+  | "bold"
+  | "dim"
+  | "doubleunderline"
+  | "framed"
+  | "hidden"
+  | "inverse"
+  | "italic"
+  | "overlined"
+  | "reset"
+  | "strikethrough"
+  | "underline";
+
+export type Color = ForegroundColors | BackgroundColors | Modifiers
+
 export interface ISpinnerOptions {
   /**
    * Spinner name (from cli-spinners lib)
@@ -95,7 +151,7 @@ export interface ISpinnerOptions {
    *
    * @default "white"
    */
-  color?: string;
+  color?: Color;
   /**
    * Do not log anything when disabled
    *

@@ -1,6 +1,7 @@
 // Import Node.js Dependencies
 import { EventEmitter } from "node:events";
 import { performance } from "node:perf_hooks";
+import { inspect, styleText } from "node:util";
 import readline from "node:readline";
 import * as TTY from "node:tty";
 
@@ -9,7 +10,9 @@ import * as cliSpinners from "cli-spinners";
 import stripAnsi from "strip-ansi";
 import ansiRegex from "ansi-regex";
 import wcwidth from "@topcli/wcwidth";
-import kleur from "kleur";
+
+// Import Internal Dependencies
+import type { Color } from "./types.js";
 
 // VARS
 let internalSpinnerCount = 0;
@@ -17,8 +20,9 @@ let internalSpinnerCount = 0;
 // CONSTANTS
 const kDefaultSpinnerName = "dots" satisfies cliSpinners.SpinnerName;
 const kLogSymbols = process.platform !== "win32" || process.env.CI || process.env.TERM === "xterm-256color" ?
-  { success: kleur.bold().green("✔"), error: kleur.bold().red("✖") } :
-  { success: kleur.bold().green("√"), error: kleur.bold().red("×") };
+  { success: styleText(["green", "bold"], "✔"), error: styleText(["red", "bold"], "✖") } :
+  { success: styleText(["green", "bold"], "✔"), error: styleText(["red", "bold"], "✖") };
+const kAvailableColors = new Set(Object.keys(inspect.colors));
 
 export interface ISpinnerOptions {
   /**
@@ -32,7 +36,7 @@ export interface ISpinnerOptions {
    *
    * @default "white"
    */
-  color?: string;
+  color?: Color | Color[];
   /**
    * Do not log anything when disabled
    *
@@ -57,7 +61,7 @@ export class Spinner extends EventEmitter {
   #spinner: cliSpinners.Spinner;
   #text = "";
   #prefix = "";
-  #color: (stdout: string) => string;
+  #color: Color;
 
   #interval: NodeJS.Timeout | null = null;
   #frameIndex = 0;
@@ -71,14 +75,14 @@ export class Spinner extends EventEmitter {
       return;
     }
 
-    const { name = kDefaultSpinnerName, color = null } = options;
+    const { name = kDefaultSpinnerName, color = "white" } = options;
 
     this.#spinner = name in cliSpinners ? cliSpinners[name] : cliSpinners[kDefaultSpinnerName];
-    if (color === null) {
-      this.#color = (str: string) => str;
-    }
-    else {
-      this.#color = color in kleur ? kleur[color] : kleur.white;
+
+    const colors = Array.isArray(color) ? color : [color];
+
+    if (colors.every((color) => kAvailableColors.has(color)) === false) {
+      throw new Error("Invalid color given");
     }
   }
 
@@ -117,7 +121,7 @@ export class Spinner extends EventEmitter {
     const frame = frames[this.#frameIndex];
     this.#frameIndex = ++this.#frameIndex < frames.length ? this.#frameIndex : 0;
 
-    return this.#color(frame);
+    return styleText(this.#color, frame);
   }
 
   #lineToRender(spinnerSymbol?: string) {
